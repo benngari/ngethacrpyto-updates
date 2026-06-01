@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>nGetHaCrypto Updates</title>
+    <link rel="icon" href="public/favicon.ico" />
+    <link rel="stylesheet" href="src/styles/main.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-inner">
+          <div class="logo">
+            <span class="logo-icon">₿</span>
+            <div>
+              <span class="logo-title">nGetHaCrypto</span>
+              <span class="logo-sub">Updates</span>
+            </div>
+          </div>
+          <div class="header-meta">
+            <span class="by-tag">by Benson Ngetha</span>
+            <span class="live-dot"></span>
+            <span class="live-label">LIVE</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Currency Converter Banner -->
+      <div class="converter-banner">
+        <span class="banner-label">QUICK CONVERT</span>
+        <input type="number" id="usdInput" class="conv-input" placeholder="1" value="1" min="0" />
+        <span class="conv-sep">USD →</span>
+        <span id="kshOutput" class="conv-output">KES —</span>
+        <span class="conv-rate" id="convRate">fetching rate...</span>
+      </div>
+
+      <!-- Market Overview -->
+      <section class="section">
+        <h2 class="section-title">📊 Market Overview</h2>
+        <div class="ticker-bar" id="tickerBar">
+          <div class="ticker-inner" id="tickerInner">Loading market data...</div>
+        </div>
+      </section>
+
+      <!-- Top Coins Grid -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">🔥 Top Coins</h2>
+          <div class="filters">
+            <button class="filter-btn active" data-sort="market_cap_rank">Rank</button>
+            <button class="filter-btn" data-sort="price_change_percentage_24h">24h %</button>
+            <button class="filter-btn" data-sort="current_price">Price</button>
+          </div>
+        </div>
+        <div class="coins-grid" id="coinsGrid">
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Fetching crypto data...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Trending Coins -->
+      <section class="section">
+        <h2 class="section-title">🚀 Trending Now</h2>
+        <div class="trending-list" id="trendingList">
+          <div class="loading-state"><div class="spinner"></div></div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="footer">
+        <p>Built by <strong>Benson Ngetha</strong> · Powered by <a href="https://www.coingecko.com" target="_blank">CoinGecko</a> & <a href="https://www.exchangerate-api.com" target="_blank">ExchangeRate-API</a></p>
+        <p class="footer-update" id="lastUpdated">Last updated: —</p>
+      </footer>
+    </div>
+
+    <script src="src/app.js"></script>
+  </body>
+</html>
