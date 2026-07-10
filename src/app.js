@@ -237,5 +237,18 @@ setInterval(async () => {
 
 // Refresh exchange rate every 10 minutes
 setInterval(fetchExchangeRate, 600_000);
+// Theme toggle
+const themeBtn = document.getElementById('themeToggle');
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'light') {
+  document.body.classList.add('light');
+  themeBtn.textContent = '🌙 Dark';
+}
+themeBtn.addEventListener('click', () => {
+  document.body.classList.toggle('light');
+  const isLight = document.body.classList.contains('light');
+  themeBtn.textContent = isLight ? '🌙 Dark' : '☀️ Light';
+  localStorage.setItem('theme', isLight ? 'light' : 'dark');
+});
 
 init();
