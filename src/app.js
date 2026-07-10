@@ -39,17 +39,19 @@ const fmt = {
 };
 
 /* ─── EXCHANGE RATE ──────────────────────────── */
-async function fetchExchangeRate() {
+async function fetchCoins() {
   try {
-    const res  = await fetch(EXCHANGE_BASE);
-    const data = await res.json();
-    if (data.rates && data.rates.KES) {
-      usdToKes = data.rates.KES;
-      document.getElementById('convRate').textContent = `1 USD = ${usdToKes.toFixed(2)} KES`;
-      updateConverter();
-    }
+    // Fetch 3 pages = 250 coins total
+    const pages = await Promise.all([1, 2, 3].map(page =>
+      fetch(`${COINGECKO_BASE}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=${page}&sparkline=false&price_change_percentage=24h,7d`)
+        .then(r => r.json())
+    ));
+    allCoins = pages.flat();
+    renderCoins();
+    renderTicker();
   } catch (e) {
-    document.getElementById('convRate').textContent = 'Rate unavailable';
+    document.getElementById('coinsGrid').innerHTML =
+      `<div class="loading-state"><p>⚠️ Failed to load coin data. Try again shortly.</p></div>`;
   }
 }
 
