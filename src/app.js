@@ -41,12 +41,17 @@ const fmt = {
 /* ─── EXCHANGE RATE ──────────────────────────── */
 async function fetchCoins() {
   try {
-    // Fetch 3 pages = 250 coins total
-    const pages = await Promise.all([1, 2, 3].map(page =>
-      fetch(`${COINGECKO_BASE}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=${page}&sparkline=false&price_change_percentage=24h,7d`)
-        .then(r => r.json())
-    ));
-    allCoins = pages.flat();
+    const allPages = [];
+    for (let page = 1; page <= 3; page++) {
+      const res = await fetch(
+        `${COINGECKO_BASE}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=${page}&sparkline=false&price_change_percentage=24h,7d`
+      );
+      const data = await res.json();
+      allPages.push(...data);
+      // Wait 1.5s between requests to avoid rate limit
+      if (page < 3) await new Promise(r => setTimeout(r, 1500));
+    }
+    allCoins = allPages;
     renderCoins();
     renderTicker();
   } catch (e) {
