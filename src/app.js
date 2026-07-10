@@ -39,24 +39,17 @@ const fmt = {
 };
 
 /* ─── EXCHANGE RATE ──────────────────────────── */
-async function fetchCoins() {
+async function fetchExchangeRate() {
   try {
-    const allPages = [];
-    for (let page = 1; page <= 3; page++) {
-      const res = await fetch(
-        `${COINGECKO_BASE}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=${page}&sparkline=false&price_change_percentage=24h,7d`
-      );
-      const data = await res.json();
-      allPages.push(...data);
-      // Wait 1.5s between requests to avoid rate limit
-      if (page < 3) await new Promise(r => setTimeout(r, 1500));
+    const res  = await fetch(EXCHANGE_BASE);
+    const data = await res.json();
+    if (data.rates && data.rates.KES) {
+      usdToKes = data.rates.KES;
+      document.getElementById('convRate').textContent = `1 USD = ${usdToKes.toFixed(2)} KES`;
+      updateConverter();
     }
-    allCoins = allPages;
-    renderCoins();
-    renderTicker();
   } catch (e) {
-    document.getElementById('coinsGrid').innerHTML =
-      `<div class="loading-state"><p>⚠️ Failed to load coin data. Try again shortly.</p></div>`;
+    document.getElementById('convRate').textContent = 'Rate unavailable';
   }
 }
 
@@ -153,27 +146,17 @@ function renderTicker() {
 }
 
 /* ─── TRENDING ───────────────────────────────── */
-async function fetchTrending() {
+async function fetchCoins() {
   try {
-    const res  = await fetch(`${COINGECKO_BASE}/search/trending`);
-    const data = await res.json();
-    const list = document.getElementById('trendingList');
-    list.innerHTML = (data.coins || []).map((c, i) => {
-      const item = c.item;
-      return `
-        <div class="trending-item">
-          <span class="trending-rank">${i + 1}</span>
-          <img class="trending-img" src="${item.small}" alt="${item.name}" loading="lazy" />
-          <div class="trending-info">
-            <div class="trending-name">${item.name}</div>
-            <div class="trending-sym">${item.symbol}</div>
-          </div>
-          <span class="trending-score">🔥 Score: ${item.score + 1}</span>
-        </div>`;
-    }).join('');
+    const res = await fetch(
+      `${COINGECKO_BASE}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h,7d`
+    );
+    allCoins = await res.json();
+    renderCoins();
+    renderTicker();
   } catch (e) {
-    document.getElementById('trendingList').innerHTML =
-      `<div class="loading-state"><p>⚠️ Failed to load trending.</p></div>`;
+    document.getElementById('coinsGrid').innerHTML =
+      `<div class="loading-state"><p>⚠️ Failed to load coin data. Try again shortly.</p></div>`;
   }
 }
 
