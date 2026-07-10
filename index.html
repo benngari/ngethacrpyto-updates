@@ -3,18 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <div class="header-meta">
-  <span class="by-tag">change theme</span>
-  <button class="theme-btn" id="themeToggle">☀️ Light</button>
-</div>
-<title>nGetHaCrypto Updates</title>
+    <title>nGetHaCrypto Updates</title>
     <link rel="icon" href="public/favicon.ico" />
     <link rel="stylesheet" href="src/styles/main.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet" />
   </head>
   <body>
     <div id="app">
-      <!-- Header -->
       <header class="header">
         <div class="header-inner">
           <div class="logo">
@@ -26,11 +21,11 @@
           </div>
           <div class="header-meta">
             <span class="by-tag">by Benson Ngetha</span>
+            <button class="theme-btn" id="themeToggle">☀️ Light</button>
           </div>
         </div>
       </header>
 
-      <!-- Currency Converter Banner -->
       <div class="converter-banner">
         <span class="banner-label">QUICK CONVERT</span>
         <input type="number" id="usdInput" class="conv-input" placeholder="1" value="1" min="0" />
@@ -39,7 +34,12 @@
         <span class="conv-rate" id="convRate">fetching rate...</span>
       </div>
 
-      <!-- Market Overview -->
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="coinSearch" class="search-input" placeholder="Search coins e.g. Bitcoin, ETH..." />
+        <span class="search-clear" id="searchClear">✕</span>
+      </div>
+
       <section class="section">
         <h2 class="section-title">📊 Market Overview</h2>
         <div class="ticker-bar" id="tickerBar">
@@ -47,7 +47,6 @@
         </div>
       </section>
 
-      <!-- Top Coins Grid -->
       <section class="section">
         <div class="section-header">
           <h2 class="section-title">🔥 Top Coins</h2>
@@ -65,7 +64,6 @@
         </div>
       </section>
 
-      <!-- Trending Coins -->
       <section class="section">
         <h2 class="section-title">🚀 Trending Now</h2>
         <div class="trending-list" id="trendingList">
@@ -73,13 +71,11 @@
         </div>
       </section>
 
-      <!-- Footer -->
       <footer class="footer">
         <p>Built by <strong>Benson Ngetha</strong> · Powered by <a href="https://www.coingecko.com" target="_blank">CoinGecko</a> & <a href="https://www.exchangerate-api.com" target="_blank">ExchangeRate-API</a></p>
         <p class="footer-update" id="lastUpdated">Last updated: —</p>
       </footer>
     </div>
-
     <script src="src/app.js"></script>
   </body>
 </html>
