@@ -2,7 +2,7 @@
 
 > Real-time cryptocurrency dashboard by **Benson Ngetha**
 
-A clean, dark-themed crypto dashboard that pulls live data from free APIs — no backend, no API keys required.
+A clean crypto dashboard that pulls live data from free APIs — no backend, no API keys required.
 
 ##  Features
 
