@@ -6,9 +6,10 @@
 const COINGECKO_BASE = 'https://api.coingecko.com/api/v3';
 const EXCHANGE_BASE  = 'https://open.er-api.com/v6/latest/USD';
 
-let allCoins = [];
-let usdToKes = null;
-let sortKey  = 'market_cap_rank';
+let allCoins  = [];
+let usdToKes  = null;
+let sortKey   = 'market_cap_rank';
+let chartInst = null;
 
 /* ─── UTILS ─────────────────────────────────── */
 const fmt = {
@@ -67,7 +68,7 @@ document.getElementById('usdInput').addEventListener('input', updateConverter);
 async function fetchCoins() {
   try {
     const res = await fetch(
-      `${COINGECKO_BASE}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=24&page=1&sparkline=false&price_change_percentage=24h,7d`
+      `${COINGECKO_BASE}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h,7d`
     );
     allCoins = await res.json();
     renderCoins();
@@ -95,7 +96,7 @@ function renderCoins(coins = null) {
     const isUp  = pct24 >= 0;
 
     return `
-      <div class="coin-card">
+      <div class="coin-card" onclick="openChart('${coin.id}', '${coin.name}', '${coin.symbol}', '${coin.image}', ${coin.current_price}, ${pct24})">
         <div class="coin-header">
           <img class="coin-img" src="${coin.image}" alt="${coin.name}" loading="lazy" />
           <div class="coin-name-block">
@@ -127,9 +128,126 @@ function renderCoins(coins = null) {
             <div class="stat-value" style="color: var(--accent2);">${fmt.kes(coin.current_price)}</div>
           </div>
         </div>
+        <div class="card-hint">📈 Click for chart</div>
       </div>`;
   }).join('');
 }
+
+/* ─── CHART MODAL ────────────────────────────── */
+async function openChart(id, name, symbol, image, price, pct24) {
+  const modal    = document.getElementById('chartModal');
+  const isUp     = pct24 >= 0;
+
+  // Set header info
+  document.getElementById('modalCoinImg').src         = image;
+  document.getElementById('modalCoinName').textContent = name;
+  document.getElementById('modalCoinSym').textContent  = symbol.toUpperCase();
+  document.getElementById('modalCoinPrice').textContent = fmt.price(price);
+  document.getElementById('modalCoinKes').textContent   = fmt.kes(price);
+  document.getElementById('modalCoinPct').textContent   = fmt.pct(pct24);
+  document.getElementById('modalCoinPct').className     = 'modal-pct ' + (isUp ? 'up' : 'down');
+  document.getElementById('chartLoading').style.display = 'flex';
+  document.getElementById('priceChart').style.display   = 'none';
+
+  // Set active range button
+  document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.range-btn[data-days="7"]').classList.add('active');
+
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  await loadChart(id, 7);
+
+  // Store current coin id for range switching
+  modal.dataset.coinId = id;
+}
+
+async function loadChart(coinId, days) {
+  document.getElementById('chartLoading').style.display = 'flex';
+  document.getElementById('priceChart').style.display   = 'none';
+
+  try {
+    const res  = await fetch(
+      `${COINGECKO_BASE}/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`
+    );
+    const data = await res.json();
+    const prices = data.prices;
+
+    const labels = prices.map(p => {
+      const d = new Date(p[0]);
+      return days <= 1
+        ? d.toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit' })
+        : d.toLocaleDateString('en-KE', { month: 'short', day: 'numeric' });
+    });
+
+    const values = prices.map(p => p[1]);
+    const isUp   = values[values.length - 1] >= values[0];
+    const color  = isUp ? '#00e676' : '#ff4d4d';
+
+    document.getElementById('chartLoading').style.display = 'none';
+    document.getElementById('priceChart').style.display   = 'block';
+
+    if (chartInst) chartInst.destroy();
+
+    const ctx = document.getElementById('priceChart').getContext('2d');
+    chartInst = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          data: values,
+          borderColor: color,
+          backgroundColor: color + '18',
+          borderWidth: 2,
+          pointRadius: 0,
+          fill: true,
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: {
+          callbacks: {
+            label: ctx => fmt.price(ctx.parsed.y)
+          }
+        }},
+        scales: {
+          x: { grid: { color: '#2a2a3a' }, ticks: { color: '#6b6b8a', maxTicksLimit: 7 }},
+          y: { grid: { color: '#2a2a3a' }, ticks: { color: '#6b6b8a', callback: v => fmt.price(v) }}
+        }
+      }
+    });
+  } catch (e) {
+    document.getElementById('chartLoading').innerHTML =
+      '<p style="color:var(--muted)">⚠️ Chart unavailable. Try again.</p>';
+  }
+}
+
+function closeModal() {
+  document.getElementById('chartModal').style.display = 'none';
+  document.body.style.overflow = '';
+  if (chartInst) { chartInst.destroy(); chartInst = null; }
+}
+
+// Range buttons
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('range-btn')) {
+    document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    const days   = e.target.dataset.days;
+    const coinId = document.getElementById('chartModal').dataset.coinId;
+    loadChart(coinId, days);
+  }
+});
+
+// Close modal on backdrop click
+document.getElementById('chartModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('chartModal')) closeModal();
+});
+
+// Close on ESC
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
 /* ─── TICKER ─────────────────────────────────── */
 function renderTicker() {

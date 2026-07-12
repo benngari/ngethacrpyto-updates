@@ -77,5 +77,37 @@
       </footer>
     </div>
     <script src="src/app.js"></script>
+    <!-- Chart Modal -->
+<div class="modal-overlay" id="chartModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-header">
+      <img id="modalCoinImg" src="" alt="" class="modal-coin-img" />
+      <div class="modal-coin-info">
+        <div class="modal-coin-name" id="modalCoinName"></div>
+        <div class="modal-coin-sym" id="modalCoinSym"></div>
+      </div>
+      <div class="modal-coin-stats">
+        <div class="modal-price" id="modalCoinPrice"></div>
+        <div class="modal-kes" id="modalCoinKes"></div>
+        <span class="modal-pct" id="modalCoinPct"></span>
+      </div>
+    </div>
+    <div class="range-btns">
+      <button class="range-btn" data-days="1">24H</button>
+      <button class="range-btn active" data-days="7">7D</button>
+      <button class="range-btn" data-days="30">30D</button>
+      <button class="range-btn" data-days="90">90D</button>
+      <button class="range-btn" data-days="365">1Y</button>
+    </div>
+    <div class="chart-wrap">
+      <div class="loading-state" id="chartLoading"><div class="spinner"></div><p>Loading chart...</p></div>
+      <canvas id="priceChart" style="display:none;"></canvas>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="src/app.js"></script>
   </body>
 </html>

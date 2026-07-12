@@ -283,3 +283,102 @@ body.light {
   .conv-rate { display: none; }
   .section-header { flex-direction: column; align-items: flex-start; gap: 12px; }
 }
+/* ---- CARD HINT ---- */
+.card-hint {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--muted);
+  margin-top: 12px;
+  text-align: right;
+}
+
+/* ---- MODAL ---- */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 700px;
+  padding: 24px;
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px; right: 16px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+.modal-close:hover { border-color: var(--red); color: var(--red); }
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.modal-coin-img { width: 48px; height: 48px; border-radius: 50%; }
+.modal-coin-info { flex: 1; }
+.modal-coin-name { font-size: 1.1rem; font-weight: 700; color: var(--text); }
+.modal-coin-sym { font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); text-transform: uppercase; }
+.modal-price { font-family: var(--font-mono); font-size: 1.3rem; font-weight: 700; color: var(--text); }
+.modal-kes { font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent2); }
+.modal-pct { font-family: var(--font-mono); font-size: 0.85rem; font-weight: 700; }
+.modal-pct.up { color: var(--green); }
+.modal-pct.down { color: var(--red); }
+
+/* ---- RANGE BUTTONS ---- */
+.range-btns {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.range-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  padding: 5px 14px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.range-btn:hover, .range-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(240,185,11,0.08);
+}
+
+/* ---- CHART ---- */
+.chart-wrap {
+  height: 280px;
+  position: relative;
+}
+
+.chart-wrap .loading-state { height: 100%; padding: 0; }
+
+@media (max-width: 600px) {
+  .modal { padding: 16px; }
+  .range-btns { flex-wrap: wrap; }
+  .chart-wrap { height: 220px; }
+}
