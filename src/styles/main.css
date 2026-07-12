@@ -330,9 +330,15 @@ body.light {
 
 .modal-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 14px;
   margin-bottom: 20px;
+}
+
+.modal-coin-stats {
+  text-align: right;
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .modal-coin-img { width: 48px; height: 48px; border-radius: 50%; }
@@ -491,3 +497,13 @@ body.light {
   transition: opacity 0.2s;
 }
 .p-add-btn:hover { opacity: 0.85; }
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
