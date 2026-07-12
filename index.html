@@ -40,6 +40,35 @@
         <span class="search-clear" id="searchClear">✕</span>
       </div>
 
+      <!-- WATCHLIST -->
+      <section class="section" id="watchlistSection" style="display:none;">
+        <h2 class="section-title">⭐ My Watchlist</h2>
+        <div class="coins-grid" id="watchlistGrid"></div>
+      </section>
+
+      <!-- PORTFOLIO -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">💼 My Portfolio</h2>
+          <button class="filter-btn" id="togglePortfolio">Show ▼</button>
+        </div>
+        <div id="portfolioPanel" style="display:none;">
+          <div class="portfolio-total" id="portfolioTotal">
+            <div class="pt-label">Total Value</div>
+            <div class="pt-usd" id="ptUsd">$0.00</div>
+            <div class="pt-kes" id="ptKes">KES 0.00</div>
+          </div>
+          <div class="portfolio-list" id="portfolioList"></div>
+          <div class="portfolio-add">
+            <select id="portfolioCoinSelect" class="p-select">
+              <option value="">Select a coin...</option>
+            </select>
+            <input type="number" id="portfolioAmount" class="p-input" placeholder="Amount you own" min="0" step="any" />
+            <button class="p-add-btn" id="portfolioAddBtn">+ Add</button>
+          </div>
+        </div>
+      </section>
+
       <section class="section">
         <h2 class="section-title">📊 Market Overview</h2>
         <div class="ticker-bar" id="tickerBar">
@@ -49,7 +78,7 @@
 
       <section class="section">
         <div class="section-header">
-          <h2 class="section-title">Top Coins</h2>
+          <h2 class="section-title">🔥 Top Coins</h2>
           <div class="filters">
             <button class="filter-btn active" data-sort="market_cap_rank">Rank</button>
             <button class="filter-btn" data-sort="price_change_percentage_24h">24h %</button>
@@ -65,7 +94,7 @@
       </section>
 
       <section class="section">
-        <h2 class="section-title">Trending Now</h2>
+        <h2 class="section-title">🚀 Trending Now</h2>
         <div class="trending-list" id="trendingList">
           <div class="loading-state"><div class="spinner"></div></div>
         </div>
@@ -76,38 +105,38 @@
         <p class="footer-update" id="lastUpdated">Last updated: —</p>
       </footer>
     </div>
-    <script src="src/app.js"></script>
-    <!-- Chart Modal -->
-<div class="modal-overlay" id="chartModal">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal()">✕</button>
-    <div class="modal-header">
-      <img id="modalCoinImg" src="" alt="" class="modal-coin-img" />
-      <div class="modal-coin-info">
-        <div class="modal-coin-name" id="modalCoinName"></div>
-        <div class="modal-coin-sym" id="modalCoinSym"></div>
-      </div>
-      <div class="modal-coin-stats">
-        <div class="modal-price" id="modalCoinPrice"></div>
-        <div class="modal-kes" id="modalCoinKes"></div>
-        <span class="modal-pct" id="modalCoinPct"></span>
-      </div>
-    </div>
-    <div class="range-btns">
-      <button class="range-btn" data-days="1">24H</button>
-      <button class="range-btn active" data-days="7">7D</button>
-      <button class="range-btn" data-days="30">30D</button>
-      <button class="range-btn" data-days="90">90D</button>
-      <button class="range-btn" data-days="365">1Y</button>
-    </div>
-    <div class="chart-wrap">
-      <div class="loading-state" id="chartLoading"><div class="spinner"></div><p>Loading chart...</p></div>
-      <canvas id="priceChart" style="display:none;"></canvas>
-    </div>
-  </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="src/app.js"></script>
+    <!-- Chart Modal -->
+    <div class="modal-overlay" id="chartModal">
+      <div class="modal">
+        <button class="modal-close" onclick="closeModal()">✕</button>
+        <div class="modal-header">
+          <img id="modalCoinImg" src="" alt="" class="modal-coin-img" />
+          <div class="modal-coin-info">
+            <div class="modal-coin-name" id="modalCoinName"></div>
+            <div class="modal-coin-sym" id="modalCoinSym"></div>
+          </div>
+          <div class="modal-coin-stats">
+            <div class="modal-price" id="modalCoinPrice"></div>
+            <div class="modal-kes" id="modalCoinKes"></div>
+            <span class="modal-pct" id="modalCoinPct"></span>
+          </div>
+        </div>
+        <div class="range-btns">
+          <button class="range-btn" data-days="1">24H</button>
+          <button class="range-btn active" data-days="7">7D</button>
+          <button class="range-btn" data-days="30">30D</button>
+          <button class="range-btn" data-days="90">90D</button>
+          <button class="range-btn" data-days="365">1Y</button>
+        </div>
+        <div class="chart-wrap">
+          <div class="loading-state" id="chartLoading"><div class="spinner"></div><p>Loading chart...</p></div>
+          <canvas id="priceChart" style="display:none;"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="src/app.js"></script>
   </body>
 </html>

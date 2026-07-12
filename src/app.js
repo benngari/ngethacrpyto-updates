@@ -11,6 +11,13 @@ let usdToKes  = null;
 let sortKey   = 'market_cap_rank';
 let chartInst = null;
 
+/* ─── LOCALSTORAGE ───────────────────────────── */
+let watchlist = JSON.parse(localStorage.getItem('watchlist') || '[]');
+let portfolio = JSON.parse(localStorage.getItem('portfolio') || '[]');
+
+function saveWatchlist() { localStorage.setItem('watchlist', JSON.stringify(watchlist)); }
+function savePortfolio() { localStorage.setItem('portfolio', JSON.stringify(portfolio)); }
+
 /* ─── UTILS ─────────────────────────────────── */
 const fmt = {
   price(n) {
@@ -73,10 +80,60 @@ async function fetchCoins() {
     allCoins = await res.json();
     renderCoins();
     renderTicker();
+    renderWatchlist();
+    renderPortfolio();
+    populatePortfolioSelect();
   } catch (e) {
     document.getElementById('coinsGrid').innerHTML =
       `<div class="loading-state"><p>⚠️ Failed to load coin data. Try again shortly.</p></div>`;
   }
+}
+
+function coinCardHTML(coin, extra = '') {
+  const pct24 = coin.price_change_percentage_24h;
+  const pct7  = coin.price_change_percentage_7d_in_currency;
+  const isUp  = pct24 >= 0;
+  const isWatched = watchlist.includes(coin.id);
+
+  return `
+    <div class="coin-card" onclick="openChart('${coin.id}', '${coin.name}', '${coin.symbol}', '${coin.image}', ${coin.current_price}, ${pct24})">
+      <div class="coin-header">
+        <img class="coin-img" src="${coin.image}" alt="${coin.name}" loading="lazy" />
+        <div class="coin-name-block">
+          <div class="coin-name">${coin.name}</div>
+          <div class="coin-symbol">${coin.symbol}</div>
+        </div>
+        <span class="coin-rank">#${coin.market_cap_rank}</span>
+        <button class="star-btn ${isWatched ? 'starred' : ''}" onclick="event.stopPropagation(); toggleWatch('${coin.id}')" title="${isWatched ? 'Remove from watchlist' : 'Add to watchlist'}">
+          ${isWatched ? '⭐' : '☆'}
+        </button>
+      </div>
+      <div class="coin-price">${fmt.price(coin.current_price)}</div>
+      <div class="coin-stats">
+        <div class="stat-item">
+          <div class="stat-label">24h Change</div>
+          <span class="change-badge ${isUp ? 'up' : 'down'}">${isUp ? '▲' : '▼'} ${fmt.pct(pct24)}</span>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">7d Change</div>
+          <span class="change-badge ${pct7 >= 0 ? 'up' : 'down'}">${pct7 >= 0 ? '▲' : '▼'} ${fmt.pct(pct7)}</span>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Market Cap</div>
+          <div class="stat-value">${fmt.bigNum(coin.market_cap)}</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">24h Vol</div>
+          <div class="stat-value">${fmt.bigNum(coin.total_volume)}</div>
+        </div>
+        <div class="stat-item" style="grid-column: span 2;">
+          <div class="stat-label">Price in KES</div>
+          <div class="stat-value" style="color: var(--accent2);">${fmt.kes(coin.current_price)}</div>
+        </div>
+      </div>
+      <div class="card-hint">📈 Click for chart</div>
+      ${extra}
+    </div>`;
 }
 
 function renderCoins(coins = null) {
@@ -90,66 +147,136 @@ function renderCoins(coins = null) {
     return 0;
   });
 
-  grid.innerHTML = sorted.map(coin => {
-    const pct24 = coin.price_change_percentage_24h;
-    const pct7  = coin.price_change_percentage_7d_in_currency;
-    const isUp  = pct24 >= 0;
+  grid.innerHTML = sorted.map(coin => coinCardHTML(coin)).join('');
+}
+
+/* ─── WATCHLIST ──────────────────────────────── */
+function toggleWatch(coinId) {
+  if (watchlist.includes(coinId)) {
+    watchlist = watchlist.filter(id => id !== coinId);
+  } else {
+    watchlist.push(coinId);
+  }
+  saveWatchlist();
+  renderCoins();
+  renderWatchlist();
+}
+
+function renderWatchlist() {
+  const section = document.getElementById('watchlistSection');
+  const grid    = document.getElementById('watchlistGrid');
+
+  if (!watchlist.length) {
+    section.style.display = 'none';
+    return;
+  }
+
+  const watched = allCoins.filter(c => watchlist.includes(c.id));
+  if (!watched.length) { section.style.display = 'none'; return; }
+
+  section.style.display = 'block';
+  grid.innerHTML = watched.map(coin => coinCardHTML(coin)).join('');
+}
+
+/* ─── PORTFOLIO ──────────────────────────────── */
+function populatePortfolioSelect() {
+  const sel = document.getElementById('portfolioCoinSelect');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Select a coin...</option>' +
+    allCoins.map(c => `<option value="${c.id}">${c.name} (${c.symbol.toUpperCase()})</option>`).join('');
+  sel.value = cur;
+}
+
+document.getElementById('togglePortfolio').addEventListener('click', () => {
+  const panel = document.getElementById('portfolioPanel');
+  const btn   = document.getElementById('togglePortfolio');
+  const open  = panel.style.display === 'none';
+  panel.style.display = open ? 'block' : 'none';
+  btn.textContent     = open ? 'Hide ▲' : 'Show ▼';
+});
+
+document.getElementById('portfolioAddBtn').addEventListener('click', () => {
+  const coinId = document.getElementById('portfolioCoinSelect').value;
+  const amount = parseFloat(document.getElementById('portfolioAmount').value);
+
+  if (!coinId || !amount || amount <= 0) return;
+
+  const existing = portfolio.find(p => p.id === coinId);
+  if (existing) {
+    existing.amount = amount;
+  } else {
+    portfolio.push({ id: coinId, amount });
+  }
+
+  savePortfolio();
+  renderPortfolio();
+  document.getElementById('portfolioAmount').value = '';
+  document.getElementById('portfolioCoinSelect').value = '';
+});
+
+function renderPortfolio() {
+  const list = document.getElementById('portfolioList');
+  if (!portfolio.length) {
+    list.innerHTML = `<p class="p-empty">No coins added yet. Add your first coin below!</p>`;
+    document.getElementById('ptUsd').textContent = '$0.00';
+    document.getElementById('ptKes').textContent = 'KES 0.00';
+    return;
+  }
+
+  let totalUsd = 0;
+
+  list.innerHTML = portfolio.map(entry => {
+    const coin = allCoins.find(c => c.id === entry.id);
+    if (!coin) return '';
+    const value    = coin.current_price * entry.amount;
+    const valueKes = usdToKes ? value * usdToKes : null;
+    const pct24    = coin.price_change_percentage_24h;
+    totalUsd += value;
 
     return `
-      <div class="coin-card" onclick="openChart('${coin.id}', '${coin.name}', '${coin.symbol}', '${coin.image}', ${coin.current_price}, ${pct24})">
-        <div class="coin-header">
-          <img class="coin-img" src="${coin.image}" alt="${coin.name}" loading="lazy" />
-          <div class="coin-name-block">
-            <div class="coin-name">${coin.name}</div>
-            <div class="coin-symbol">${coin.symbol}</div>
-          </div>
-          <span class="coin-rank">#${coin.market_cap_rank}</span>
+      <div class="p-item">
+        <img class="p-img" src="${coin.image}" alt="${coin.name}" />
+        <div class="p-info">
+          <div class="p-name">${coin.name}</div>
+          <div class="p-amount">${entry.amount} ${coin.symbol.toUpperCase()}</div>
         </div>
-        <div class="coin-price">${fmt.price(coin.current_price)}</div>
-        <div class="coin-stats">
-          <div class="stat-item">
-            <div class="stat-label">24h Change</div>
-            <span class="change-badge ${isUp ? 'up' : 'down'}">${isUp ? '▲' : '▼'} ${fmt.pct(pct24)}</span>
-          </div>
-          <div class="stat-item">
-            <div class="stat-label">7d Change</div>
-            <span class="change-badge ${pct7 >= 0 ? 'up' : 'down'}">${pct7 >= 0 ? '▲' : '▼'} ${fmt.pct(pct7)}</span>
-          </div>
-          <div class="stat-item">
-            <div class="stat-label">Market Cap</div>
-            <div class="stat-value">${fmt.bigNum(coin.market_cap)}</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-label">24h Vol</div>
-            <div class="stat-value">${fmt.bigNum(coin.total_volume)}</div>
-          </div>
-          <div class="stat-item" style="grid-column: span 2;">
-            <div class="stat-label">Price in KES</div>
-            <div class="stat-value" style="color: var(--accent2);">${fmt.kes(coin.current_price)}</div>
-          </div>
+        <div class="p-values">
+          <div class="p-usd">${fmt.price(value)}</div>
+          <div class="p-kes-val">${valueKes ? 'KES ' + valueKes.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—'}</div>
+          <span class="change-badge ${pct24 >= 0 ? 'up' : 'down'}">${pct24 >= 0 ? '▲' : '▼'} ${fmt.pct(pct24)}</span>
         </div>
-        <div class="card-hint">📈 Click for chart</div>
+        <button class="p-remove" onclick="removeFromPortfolio('${coin.id}')">✕</button>
       </div>`;
   }).join('');
+
+  const totalKes = usdToKes ? totalUsd * usdToKes : null;
+  document.getElementById('ptUsd').textContent = fmt.price(totalUsd);
+  document.getElementById('ptKes').textContent = totalKes
+    ? 'KES ' + totalKes.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : '—';
+}
+
+function removeFromPortfolio(coinId) {
+  portfolio = portfolio.filter(p => p.id !== coinId);
+  savePortfolio();
+  renderPortfolio();
 }
 
 /* ─── CHART MODAL ────────────────────────────── */
 async function openChart(id, name, symbol, image, price, pct24) {
-  const modal    = document.getElementById('chartModal');
-  const isUp     = pct24 >= 0;
+  const modal = document.getElementById('chartModal');
+  const isUp  = pct24 >= 0;
 
-  // Set header info
-  document.getElementById('modalCoinImg').src         = image;
-  document.getElementById('modalCoinName').textContent = name;
-  document.getElementById('modalCoinSym').textContent  = symbol.toUpperCase();
-  document.getElementById('modalCoinPrice').textContent = fmt.price(price);
-  document.getElementById('modalCoinKes').textContent   = fmt.kes(price);
-  document.getElementById('modalCoinPct').textContent   = fmt.pct(pct24);
-  document.getElementById('modalCoinPct').className     = 'modal-pct ' + (isUp ? 'up' : 'down');
-  document.getElementById('chartLoading').style.display = 'flex';
-  document.getElementById('priceChart').style.display   = 'none';
+  document.getElementById('modalCoinImg').src            = image;
+  document.getElementById('modalCoinName').textContent   = name;
+  document.getElementById('modalCoinSym').textContent    = symbol.toUpperCase();
+  document.getElementById('modalCoinPrice').textContent  = fmt.price(price);
+  document.getElementById('modalCoinKes').textContent    = fmt.kes(price);
+  document.getElementById('modalCoinPct').textContent    = fmt.pct(pct24);
+  document.getElementById('modalCoinPct').className      = 'modal-pct ' + (isUp ? 'up' : 'down');
+  document.getElementById('chartLoading').style.display  = 'flex';
+  document.getElementById('priceChart').style.display    = 'none';
 
-  // Set active range button
   document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
   document.querySelector('.range-btn[data-days="7"]').classList.add('active');
 
@@ -157,8 +284,6 @@ async function openChart(id, name, symbol, image, price, pct24) {
   document.body.style.overflow = 'hidden';
 
   await loadChart(id, 7);
-
-  // Store current coin id for range switching
   modal.dataset.coinId = id;
 }
 
@@ -167,10 +292,8 @@ async function loadChart(coinId, days) {
   document.getElementById('priceChart').style.display   = 'none';
 
   try {
-    const res  = await fetch(
-      `${COINGECKO_BASE}/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`
-    );
-    const data = await res.json();
+    const res    = await fetch(`${COINGECKO_BASE}/coins/${coinId}/market_chart?vs_currency=usd&days=${days}`);
+    const data   = await res.json();
     const prices = data.prices;
 
     const labels = prices.map(p => {
@@ -208,9 +331,7 @@ async function loadChart(coinId, days) {
         responsive: true,
         maintainAspectRatio: false,
         plugins: { legend: { display: false }, tooltip: {
-          callbacks: {
-            label: ctx => fmt.price(ctx.parsed.y)
-          }
+          callbacks: { label: ctx => fmt.price(ctx.parsed.y) }
         }},
         scales: {
           x: { grid: { color: '#2a2a3a' }, ticks: { color: '#6b6b8a', maxTicksLimit: 7 }},
@@ -230,7 +351,6 @@ function closeModal() {
   if (chartInst) { chartInst.destroy(); chartInst = null; }
 }
 
-// Range buttons
 document.addEventListener('click', e => {
   if (e.target.classList.contains('range-btn')) {
     document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
@@ -241,12 +361,10 @@ document.addEventListener('click', e => {
   }
 });
 
-// Close modal on backdrop click
 document.getElementById('chartModal').addEventListener('click', e => {
   if (e.target === document.getElementById('chartModal')) closeModal();
 });
 
-// Close on ESC
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
 /* ─── TICKER ─────────────────────────────────── */
@@ -294,6 +412,7 @@ async function fetchTrending() {
 /* ─── FILTERS ────────────────────────────────── */
 document.querySelectorAll('.filter-btn').forEach(btn => {
   btn.addEventListener('click', () => {
+    if (btn.id === 'togglePortfolio') return;
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     sortKey = btn.dataset.sort;
