@@ -146,17 +146,30 @@ function renderTicker() {
 }
 
 /* ─── TRENDING ───────────────────────────────── */
-async function fetchCoins() {
+async function fetchTrending() {
   try {
-    const res = await fetch(
-      `${COINGECKO_BASE}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h,7d`
-    );
-    allCoins = await res.json();
-    renderCoins();
-    renderTicker();
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const res  = await fetch(`${COINGECKO_BASE}/search/trending`, { signal: controller.signal });
+    clearTimeout(timeout);
+    const data = await res.json();
+    const list = document.getElementById('trendingList');
+    list.innerHTML = (data.coins || []).map((c, i) => {
+      const item = c.item;
+      return `
+        <div class="trending-item">
+          <span class="trending-rank">${i + 1}</span>
+          <img class="trending-img" src="${item.small}" alt="${item.name}" loading="lazy" />
+          <div class="trending-info">
+            <div class="trending-name">${item.name}</div>
+            <div class="trending-sym">${item.symbol}</div>
+          </div>
+          <span class="trending-score">🔥 Score: ${item.score + 1}</span>
+        </div>`;
+    }).join('');
   } catch (e) {
-    document.getElementById('coinsGrid').innerHTML =
-      `<div class="loading-state"><p>⚠️ Failed to load coin data. Try again shortly.</p></div>`;
+    document.getElementById('trendingList').innerHTML =
+      `<div class="loading-state"><p>⚠️ Trending unavailable right now. Refresh to retry.</p></div>`;
   }
 }
 
